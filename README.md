@@ -32,20 +32,6 @@ Tokens and `SITE_PASSWORD` stay in server environment variables. Do not prefix t
 
 ![Overview of the dashboard in Chinese, with stats, the next-run countdown, a 7-day timeline, and the routine list](docs/screenshots/overview.png)
 
-## Screenshots
-
-| Overview | Detail drawer |
-| --- | --- |
-| ![Overview](docs/screenshots/overview.png) | ![Detail drawer with the prompt and raw trigger JSON](docs/screenshots/drawer.png) |
-
-English UI:
-
-![The same dashboard after switching the language to English](docs/screenshots/english.png)
-
-Narrow screen:
-
-![The dashboard on a phone-width viewport](docs/screenshots/mobile.png)
-
 ## Quick start (static demo)
 
 ```bash
@@ -320,6 +306,8 @@ Cloudflare 是推荐选项之一，不是必须。静态演示不会收到你的
 GitHub Pages 和其他静态空间放不下这份文件。它们只提供虚构演示。
 
 令牌和 `SITE_PASSWORD` 只放在服务器环境变量里。不要加 `NEXT_PUBLIC_` 前缀，不要提交，也不要写进同步例程的指令。
+
+![中文总览：统计、下一次运行倒计时、7 天时间线和任务列表](docs/screenshots/overview.png)
 
 界面默认中文，页头可以改成英文。本地看演示：
 
