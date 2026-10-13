@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "exportedAt": "2026-10-13T13:30:00+08:00",
+  "timezone": "Asia/Shanghai",
+  "staleAfterMinutes": 180,
+  "routines": [
+    {
+      "id": "harbor-morning-brief",
+      "name": "工作日早报",
+      "bot": "Harbor",
+      "status": "enabled",
+      "summary": "把公开资讯收成一段可以念出来的早报提纲。",
+      "updatedAt": "2026-10-12T09:00:00+08:00",
+      "prompt": "## 要做的事\n\n阅读一份虚构的公开标题列表，写成不超过 180 字的早报提纲。\n\n## 约束\n\n- 只使用调用时附带的标题，不要补充未提供的事实\n- 分成「值得看」和「可以略过」两组\n- 结尾用一句话写出今天最值得先看的一项\n\n## 语气\n\n平静、具体，像写给同事的便条，而不是新闻播报。",
+      "trigger": {
+        "type": "cron",
+        "expression": "15 8 * * 1-5"
+      }
+    },
+    {
+      "id": "harbor-weekly-landscape",
+      "name": "周一领域速览",
+      "bot": "Harbor",
+      "status": "enabled",
+      "summary": "用同一套小标题，重写一份领域周报的目录。",
+      "updatedAt": "2026-10-06T09:10:00+08:00",
+      "prompt": "根据调用时给出的笔记，整理一份领域速览目录。\n\n每节只写一个问句标题，再跟两句说明。如果笔记之间互相矛盾，把矛盾单独列出来，不要自行裁决。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 9 * * 1"
+      }
+    },
+    {
+      "id": "harbor-month-open",
+      "name": "月初清单",
+      "bot": "Harbor",
+      "status": "paused",
+      "summary": "月初整理一份可以勾选的阅读清单。",
+      "updatedAt": "2026-09-28T11:00:00+08:00",
+      "prompt": "把上个月留下的未读条目标成一张清单。每条保留原标题，并补一个「为什么现在读」的短句。不要新增条目。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 9 1 * *"
+      }
+    },
+    {
+      "id": "lumen-inbox-sweep",
+      "name": "工作时间巡检",
+      "bot": "Lumen",
+      "status": "enabled",
+      "summary": "一天三次查看待处理队列，只标出需要人决定的事。",
+      "updatedAt": "2026-10-11T16:40:00+08:00",
+      "prompt": "## 巡检\n\n查看附带的队列快照。\n\n- 已经有明确下一步的，归入「可自动继续」\n- 缺少决定、权限或上下文的，归入「需要人」\n- 每条「需要人」写明缺的是什么\n\n不要替任何人做决定，也不要发送消息。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 11,15,17 * * 1-5"
+      }
+    },
+    {
+      "id": "lumen-after-hours",
+      "name": "下班后收件",
+      "bot": "Lumen",
+      "status": "paused",
+      "summary": "把下班后新到的条目收成一封不会发出去的草稿。",
+      "updatedAt": "2026-10-09T19:05:00+08:00",
+      "prompt": "汇总 18:00 之后出现的新条目。按主题分组，每组最多三条。输出只作为草稿，不要称呼具体的人。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 19 * * 1-5"
+      }
+    },
+    {
+      "id": "lumen-priority-hook",
+      "name": "优先事件接入",
+      "bot": "Lumen",
+      "status": "enabled",
+      "summary": "外部系统推来一条优先事项时，先写判断摘要。",
+      "updatedAt": "2026-10-10T13:20:00+08:00",
+      "prompt": "收到一条优先事件。用四行回答：发生了什么、影响范围、还不清楚的点、建议的下一步。不要猜测事件之外的原因。",
+      "trigger": {
+        "type": "webhook",
+        "path": "/hooks/lumen/priority",
+        "description": "当示例队列标记一条优先事项时调用。"
+      }
+    },
+    {
+      "id": "quill-draft-desk",
+      "name": "隔日草稿",
+      "bot": "Quill",
+      "status": "enabled",
+      "summary": "周二和周四各写一版可以继续改的短稿。",
+      "updatedAt": "2026-10-07T10:00:00+08:00",
+      "prompt": "根据附带的三点提纲，写一段 120 字左右的说明稿。\n\n保留提纲里的用词。如果提纲不够支撑某个结论，用「这里还缺材料」标出来，不要编造例子。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 10 * * 2,4"
+      }
+    },
+    {
+      "id": "quill-headline-pass",
+      "name": "标题润色",
+      "bot": "Quill",
+      "status": "enabled",
+      "summary": "给一篇已有短文准备三个备选标题。",
+      "updatedAt": "2026-10-08T15:12:00+08:00",
+      "prompt": "阅读附带的正文，给出三个标题：一个直白，一个具体，一个更短。每个标题下面用一句话说明取舍。不要改变正文事实。",
+      "trigger": {
+        "type": "webhook",
+        "path": "/hooks/quill/headline",
+        "description": "编辑台提交一篇待起标题的短文时调用。"
+      }
+    },
+    {
+      "id": "nimbus-status-pulse",
+      "name": "状态脉搏",
+      "bot": "Nimbus",
+      "status": "enabled",
+      "summary": "早晚各看一次服务状态，写成三行结论。",
+      "updatedAt": "2026-10-12T07:40:00+08:00",
+      "prompt": "根据附带的状态数字，写三行：整体是否平稳、哪一项变化最大、是否需要人看一眼。数字没有给出的维度不要提。",
+      "trigger": {
+        "type": "cron",
+        "expression": "30 7,19 * * *"
+      }
+    },
+    {
+      "id": "nimbus-incident-hook",
+      "name": "异常回调",
+      "bot": "Nimbus",
+      "status": "paused",
+      "summary": "收到异常通知时，整理一条可以转发的说明。",
+      "updatedAt": "2026-10-04T22:18:00+08:00",
+      "prompt": "把异常通知改写成一条说明：开始时间、现象、目前是否仍在继续。不要提出修复步骤，除非通知里已经写了。",
+      "trigger": {
+        "type": "webhook",
+        "path": "/hooks/nimbus/incident",
+        "description": "监控示例在打开一条异常时调用。"
+      }
+    },
+    {
+      "id": "pebble-standup-nudge",
+      "name": "站会前提醒",
+      "bot": "Pebble",
+      "status": "enabled",
+      "summary": "站会前整理昨天留下的三个开放问题。",
+      "updatedAt": "2026-10-11T09:30:00+08:00",
+      "prompt": "从附带的笔记里挑出最多三个仍未关闭的问题。每个问题保留原话，并写上「谁可以回答」——如果笔记里没有人，就写「未指定」。",
+      "trigger": {
+        "type": "cron",
+        "expression": "25 9 * * 1-5"
+      }
+    },
+    {
+      "id": "pebble-evening-close",
+      "name": "傍晚收尾",
+      "bot": "Pebble",
+      "status": "enabled",
+      "summary": "下班前把今天的完成项和未完成项分开。",
+      "updatedAt": "2026-10-11T18:35:00+08:00",
+      "prompt": "阅读今天的活动记录，分成「做完了」和「还开着」。每边最多五条，使用原来的说法。最后留一句明天最先该看的事。",
+      "trigger": {
+        "type": "cron",
+        "expression": "30 18 * * 1-5"
+      }
+    },
+    {
+      "id": "pebble-sunday-reset",
+      "name": "周日重置",
+      "bot": "Pebble",
+      "status": "enabled",
+      "summary": "周日晚上为下一周留一张很短的卡片。",
+      "updatedAt": "2026-10-05T20:10:00+08:00",
+      "prompt": "用下周的已有安排写一张卡片：三件已经定下的事，一件可以推迟的事。没有安排的日子不要填空。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 20 * * 0"
+      }
+    },
+    {
+      "id": "sable-archive-index",
+      "name": "凌晨归档",
+      "bot": "Sable",
+      "status": "enabled",
+      "summary": "每天凌晨为新归档的文档写索引行。",
+      "updatedAt": "2026-10-12T02:05:00+08:00",
+      "prompt": "为每份新文档写一行索引：文档标题、一句话摘要、建议的标签（从「记录」「决策」「参考」里选）。不要评价文档质量。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 2 * * *"
+      }
+    },
+    {
+      "id": "sable-manual-reindex",
+      "name": "手动重建索引",
+      "bot": "Sable",
+      "status": "enabled",
+      "summary": "有人请求重建某一组文档的索引时再运行。",
+      "updatedAt": "2026-10-03T14:44:00+08:00",
+      "prompt": "只处理请求里点名的文档。输出一张表：原标题、建议标题、是否与其他文档重名。重名时并列两个标题，不要合并内容。",
+      "trigger": {
+        "type": "webhook",
+        "path": "/hooks/sable/reindex",
+        "description": "资料库页面上的「重建索引」按钮调用。"
+      }
+    },
+    {
+      "id": "finch-community-roundup",
+      "name": "周五社区周报",
+      "bot": "Finch",
+      "status": "enabled",
+      "summary": "按伦敦时间，在周五下午整理一周讨论。",
+      "updatedAt": "2026-10-10T16:00:00+08:00",
+      "prompt": "把一周的讨论标题收成周报。分成「有结论」和「还在聊」。每类最多四条。不要引用讨论之外的观点，也不要点名发言的人。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 16 * * 5",
+        "timezone": "Europe/London"
+      }
+    },
+    {
+      "id": "finch-mention-hook",
+      "name": "提及转发",
+      "bot": "Finch",
+      "status": "enabled",
+      "summary": "有新的提及时，先判断要不要转给值班的人。",
+      "updatedAt": "2026-10-09T11:26:00+08:00",
+      "prompt": "阅读这条提及。回答：是否需要转发、原因（一句）、如果转发，主题行写什么。不确定就选择不转发。",
+      "trigger": {
+        "type": "webhook",
+        "path": "/hooks/finch/mention",
+        "description": "社区示例里出现新提及时调用。"
+      }
+    },
+    {
+      "id": "marlowe-release-notes",
+      "name": "周三发布说明",
+      "bot": "Marlowe",
+      "status": "enabled",
+      "summary": "按纽约时间，把本周变更写成发布说明。",
+      "updatedAt": "2026-10-08T11:05:00+08:00",
+      "prompt": "## 发布说明\n\n根据变更列表写一段发布说明。\n\n1. 先写用户能感知到的变化\n2. 再写内部调整\n3. 已知限制单独成段\n\n列表里没有的功能不要写进去。版本号只用调用时提供的那个。",
+      "trigger": {
+        "type": "cron",
+        "expression": "0 11 * * 3",
+        "timezone": "America/New_York"
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "bot-routines-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static dashboard template for scheduled bot routines.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test lib/*.test.ts"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.9.0",
+    "croner": "^10.0.1",
+    "cronstrue": "^3.32.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

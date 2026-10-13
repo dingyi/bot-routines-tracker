@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "routines.schema.json",
+  "title": "Bot routines file",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["routines"],
+  "properties": {
+    "version": {
+      "const": 1,
+      "description": "Schema version. Omit it or set it to 1."
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this file was produced. The dashboard uses it for the updated time and the stale warning."
+    },
+    "timezone": {
+      "type": "string",
+      "default": "Asia/Shanghai",
+      "description": "IANA time zone used for cron routines that do not set their own."
+    },
+    "staleAfterMinutes": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 720,
+      "description": "Show a stale-data warning when exportedAt is older than this many minutes."
+    },
+    "routines": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/routine" }
+    }
+  },
+  "$defs": {
+    "routine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "bot", "status", "prompt", "trigger"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "bot": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["enabled", "paused"] },
+        "summary": { "type": "string" },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Markdown shown in full in the detail drawer."
+        },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "trigger": {
+          "oneOf": [
+            { "$ref": "#/$defs/cronTrigger" },
+            { "$ref": "#/$defs/webhookTrigger" }
+          ]
+        }
+      }
+    },
+    "cronTrigger": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["type", "expression"],
+      "properties": {
+        "type": { "const": "cron" },
+        "expression": {
+          "type": "string",
+          "description": "Standard 5-field cron expression: minute hour day-of-month month day-of-week.",
+          "examples": ["15 8 * * 1-5", "0 9 * * 1", "30 7,19 * * *"]
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Optional IANA zone for this routine. Defaults to the file timezone."
+        }
+      }
+    },
+    "webhookTrigger": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "webhook" },
+        "path": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    }
+  }
+}
