@@ -1,0 +1,10 @@
+{
+  "name": "Channel watch",
+  "prompt": "Summarize the matching note. Do not reply in the channel.",
+  "enabled": true,
+  "trigger": {
+    "type": "slack",
+    "channel": "#example",
+    "token": "should-not-be-copied"
+  }
+}

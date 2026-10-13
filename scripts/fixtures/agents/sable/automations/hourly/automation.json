@@ -1,0 +1,6 @@
+{
+  "name": "Hourly check",
+  "prompt": "List anything new since the last run.",
+  "cron": "0 * * * *",
+  "enabled": true
+}

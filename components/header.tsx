@@ -24,7 +24,7 @@ export function Header({
   onLocale: (locale: Locale) => void;
   timeZone: string;
   onTimeZone: (timeZone: string) => void;
-  source: "sample" | "remote";
+  source: "sample" | "remote" | "synced";
   dataUrl: string;
   onApplyUrl: (url: string) => void;
   onUseSample: () => void;
@@ -81,7 +81,7 @@ export function Header({
       </div>
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 pb-3 text-sm text-muted">
         <span className="rounded-full bg-teal-soft px-2 py-0.5 text-teal-deep">
-          {source === "sample" ? text.sampleSource : text.remoteSource}
+          {source === "sample" ? text.sampleSource : source === "synced" ? text.syncedSource : text.remoteSource}
         </span>
         <span>
           {text.exported} {exportedLabel}

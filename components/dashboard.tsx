@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { Gate } from "@/components/gate";
+import { Gate, UnconfiguredNotice } from "@/components/gate";
 import { Header } from "@/components/header";
 import { Overview } from "@/components/overview";
 import { TaskDrawer } from "@/components/task-drawer";
@@ -21,11 +21,12 @@ import {
 import { buildBoard } from "@/lib/schedule";
 import { isValidTimeZone } from "@/lib/time";
 import type { RoutinesFile, RoutineStatus, TriggerType } from "@/lib/types";
+import { isWorkerBacked, lockWorkerGate, openGate, readGate, subscribeGate } from "@/lib/worker-auth";
 
 type Snapshot = {
   file: RoutinesFile;
   skipped: string[];
-  source: "sample" | "remote";
+  source: "sample" | "remote" | "synced";
   error: string | null;
   fetchedAt: number;
 };
@@ -56,6 +57,36 @@ function useIsClient(): boolean {
 export function Dashboard() {
   const isClient = useIsClient();
   if (!isClient) return <DashboardSkeleton />;
+  return <DashboardClient />;
+}
+
+function DashboardClient() {
+  const clientPassword = gatePassword();
+  const clientUnlocked = window.sessionStorage.getItem(GATE_KEY) === "1";
+  const gate = useSyncExternalStore(
+    (listener) => subscribeGate(clientPassword, clientUnlocked, listener),
+    readGate,
+    () => "checking" as const,
+  );
+  const locale = readLocale();
+  if (gate === "checking") return <DashboardSkeleton />;
+  if (gate === "unconfigured") return <UnconfiguredNotice locale={locale} />;
+  if (gate === "client") {
+    return (
+      <Gate
+        locale={locale}
+        mode="client"
+        password={clientPassword}
+        onUnlock={() => {
+          window.sessionStorage.setItem(GATE_KEY, "1");
+          openGate();
+        }}
+      />
+    );
+  }
+  if (gate === "worker") {
+    return <Gate locale={locale} mode="worker" onUnlock={() => openGate()} />;
+  }
   return <DashboardLive />;
 }
 
@@ -74,11 +105,6 @@ function DashboardSkeleton() {
 }
 
 function DashboardLive() {
-  const requiredPassword = gatePassword();
-  const [unlocked, setUnlocked] = useState(() => {
-    if (!requiredPassword) return true;
-    return window.sessionStorage.getItem(GATE_KEY) === "1";
-  });
   const [locale, setLocale] = useState<Locale>(readLocale);
   const [chosenZone, setChosenZone] = useState(readZone);
   const [sourceUrl, setSourceUrl] = useState(readSourceUrl);
@@ -111,14 +137,19 @@ function DashboardLive() {
     seen.current = null;
 
     async function readJson(url: string): Promise<Snapshot> {
-      const response = await fetch(url, { cache: "no-store" });
+      const response = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+      if (response.status === 401 && isWorkerBacked() && url === sampleDataUrl()) {
+        lockWorkerGate();
+        throw new Error("unauthorized");
+      }
       if (!response.ok) throw new Error(String(response.status));
       const body: unknown = await response.json();
       const parsed = parseRoutines(body);
+      const source = url !== sampleDataUrl() ? "remote" : isWorkerBacked() ? "synced" : "sample";
       return {
         file: parsed.file,
         skipped: parsed.skipped,
-        source: url === sampleDataUrl() ? "sample" : "remote",
+        source,
         error: null,
         fetchedAt: Date.now(),
       };
@@ -135,6 +166,7 @@ function DashboardLive() {
       } catch (error) {
         if (!token.current) return;
         const message = error instanceof Error ? error.message : "error";
+        if (message === "unauthorized") return;
         if (remote && first) {
           try {
             const sample = await readJson(sampleDataUrl());
@@ -194,10 +226,6 @@ function DashboardLive() {
   const exportedMs = file?.exportedAt ? Date.parse(file.exportedAt) : Number.NaN;
   const stale =
     file !== null && Number.isFinite(exportedMs) && now - exportedMs > file.staleAfterMinutes * 60_000;
-
-  if (!unlocked) {
-    return <Gate locale={locale} password={requiredPassword} onUnlock={() => setUnlocked(true)} />;
-  }
 
   function persistUrl(next: string) {
     const trimmed = next.trim();
@@ -319,7 +347,11 @@ function DashboardLive() {
             />
           </>
         ) : null}
-        <p className="pb-6 text-center text-xs text-muted">{text.footer}</p>
+        {snapshot?.source === "sample" ? (
+          <p className="pb-6 text-center text-xs text-muted">{text.footer}</p>
+        ) : (
+          <div className="pb-6" />
+        )}
       </main>
       <TaskDrawer
         locale={locale}

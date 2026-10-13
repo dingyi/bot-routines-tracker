@@ -1,0 +1,5 @@
+{
+  "name": "Missing prompt",
+  "enabled": true,
+  "trigger": { "type": "cron", "expression": "not a cron" }
+}

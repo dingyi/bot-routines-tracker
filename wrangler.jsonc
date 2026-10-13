@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Worker name. The install prompt replaces this with the site name.
+  "name": "bot-routines",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 }
+  },
+  // Static export from `npm run build` (domain root, PAGES_BASE_PATH empty).
+  // /api/* and /routines.json run the Worker first so the private R2 object
+  // is never replaced by the fictional sample shipped in out/routines.json.
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*", "/routines.json"]
+  },
+  // Non-secret object key. The bucket stays private; do not enable public access.
+  "vars": {
+    "ROUTINES_OBJECT_KEY": "routines.json"
+  },
+  "secrets": {
+    "required": ["SITE_PASSWORD"]
+  },
+  "r2_buckets": [
+    {
+      "binding": "ROUTINES_BUCKET",
+      // The install prompt replaces bucket_name with <SITE_NAME>-routines.
+      "bucket_name": "bot-routines-data"
+    }
+  ]
+}

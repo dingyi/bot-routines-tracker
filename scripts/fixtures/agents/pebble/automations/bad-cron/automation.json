@@ -1,0 +1,6 @@
+{
+  "name": "Bad cron",
+  "prompt": "This expression cannot run.",
+  "enabled": true,
+  "trigger": { "type": "cron", "expression": "not a cron" }
+}
