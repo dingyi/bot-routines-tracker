@@ -1,0 +1,10 @@
+{
+  "name": "Inbound note",
+  "prompt": "Restate the event in four lines.",
+  "status": "enabled",
+  "trigger": {
+    "type": "webhook",
+    "path": "/hooks/lumen",
+    "description": "Example form."
+  }
+}

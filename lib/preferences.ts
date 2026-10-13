@@ -44,9 +44,13 @@ export function timeZoneLabel(timeZone: string, locale: "zh" | "en"): string {
   return `${known[locale]} · ${timeZone}`;
 }
 
-export function sampleDataUrl(): string {
+export function apiUrl(path: string): string {
   const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-  return `${base}/routines.json`;
+  return `${base}${path}`;
+}
+
+export function sampleDataUrl(): string {
+  return apiUrl("/routines.json");
 }
 
 export function gatePassword(): string {

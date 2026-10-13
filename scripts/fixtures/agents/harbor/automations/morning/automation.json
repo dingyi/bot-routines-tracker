@@ -1,0 +1,12 @@
+{
+  "name": "Morning note",
+  "summary": "A short weekday note.",
+  "prompt": "Summarize the inbox titles. Do not add facts.",
+  "enabled": true,
+  "updatedAt": "2026-10-13T01:00:00.000Z",
+  "trigger": {
+    "type": "cron",
+    "expression": "15 8 * * 1-5",
+    "timezone": "Asia/Shanghai"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Paused sweep",
+  "instructions": "Stay quiet when nothing changed.",
+  "paused": true,
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * 1",
+    "tz": "Europe/London"
+  }
+}

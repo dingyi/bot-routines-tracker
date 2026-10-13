@@ -1,0 +1,44 @@
+# Optional: upload routines.json on a schedule from a runner that can see the files.
+# Grok Bot users should use the install prompt in the README instead. A background
+# loop on the bot computer pauses when the app closes, and a GitHub-hosted runner
+# cannot read /home/box/agent-data.
+#
+# Copy this file to .github/workflows/sync-routines.yml and uncomment `schedule`
+# only if this runner can see AGENTS_ROOT. Keep the R2 bucket private.
+#
+# This example is only the R2 path (SYNC_TARGET=r2). It is not the install prompt.
+# Vercel Blob, Netlify Blobs, KV, a private file, and a private URL are in the README.
+# None of those stores should be public.
+
+name: Sync routines to R2
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "*/15 * * * *"
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export and upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          AGENTS_ROOT: ${{ vars.AGENTS_ROOT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_OBJECT_KEY: routines.json
+          R2_CLI: wrangler
+        run: bash scripts/export-and-upload.sh

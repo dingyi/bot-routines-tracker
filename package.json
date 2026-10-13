@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "start": "node server/index.mjs",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/*.test.ts"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p worker/tsconfig.json",
+    "cf-typegen": "wrangler types worker/env.d.ts --include-runtime false",
+    "test": "tsx --test lib/*.test.ts worker/*.test.ts && node --test scripts/*.test.mjs server/*.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -21,6 +23,7 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261006.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -29,6 +32,7 @@
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.149.0"
   }
 }
