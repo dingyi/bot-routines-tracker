@@ -14,4 +14,7 @@
 
 ## Next
 
-- Confirm the GitHub Pages site responds at https://dingyi.github.io/bot-routines-tracker/
+- An admin still needs to turn on GitHub Pages. The token used here cannot change that setting (`POST /repos/dingyi/bot-routines-tracker/pages` returns 403).
+- In the repo: Settings → Pages → Build and deployment → Source: GitHub Actions.
+- Then re-run the “Deploy to GitHub Pages” workflow on `main`. The build already passes; deploy fails with “Ensure GitHub Pages has been enabled” until that switch is on.
+- After that, confirm https://dingyi.github.io/bot-routines-tracker/
