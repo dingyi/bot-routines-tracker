@@ -5,6 +5,10 @@
 #
 # Copy this file to .github/workflows/sync-routines.yml and uncomment `schedule`
 # only if this runner can see AGENTS_ROOT. Keep the R2 bucket private.
+#
+# This example is only the R2 path (SYNC_TARGET=r2). It is not the install prompt.
+# Vercel Blob, Netlify Blobs, KV, a private file, and a private URL are in the README.
+# None of those stores should be public.
 
 name: Sync routines to R2
 

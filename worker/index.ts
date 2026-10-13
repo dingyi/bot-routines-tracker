@@ -1,3 +1,4 @@
+import { FeedError, publicMessage, readPrivateUrl } from "../server/remote-feed.mjs";
 import { passwordMatches, sessionToken, tokensMatch } from "./session";
 
 type RoutinesObject = {
@@ -13,6 +14,8 @@ type AppEnv = {
     get: (key: string) => Promise<RoutinesObject | null>;
   };
   ROUTINES_OBJECT_KEY: string;
+  ROUTINES_URL?: string;
+  ROUTINES_TOKEN?: string;
   SITE_PASSWORD: string;
 };
 
@@ -69,6 +72,33 @@ async function unlocked(request: Request, env: AppEnv): Promise<boolean> {
   return tokensMatch(cookie, expected);
 }
 
+function visitorFeed(error: FeedError): { status: number; error: string } {
+  if (error.status === 404) return { status: 404, error: "routines.json is not available yet" };
+  if (error.status === 413) return { status: 413, error: "routines object is too large" };
+  if (error.status === 503) return { status: 503, error: "routines token is not configured" };
+  return { status: 502, error: "routines feed failed" };
+}
+
+async function serveRemote(url: string, token: string): Promise<Response> {
+  try {
+    const body = await readPrivateUrl(url, token);
+    return new Response(body, {
+      status: 200,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    });
+  } catch (error) {
+    console.error(JSON.stringify({ message: "private feed failed", error: publicMessage(error) }));
+    if (error instanceof FeedError) {
+      const visitor = visitorFeed(error);
+      return json({ error: visitor.error }, visitor.status);
+    }
+    return json({ error: "routines feed failed" }, 502);
+  }
+}
+
 async function serveRoutines(request: Request, env: AppEnv): Promise<Response> {
   if (!passwordReady(env)) {
     return json({ error: "SITE_PASSWORD is not configured" }, 503);
@@ -76,6 +106,8 @@ async function serveRoutines(request: Request, env: AppEnv): Promise<Response> {
   if (!(await unlocked(request, env))) {
     return json({ error: "unauthorized" }, 401);
   }
+  const remoteUrl = env.ROUTINES_URL?.trim() ?? "";
+  if (remoteUrl) return serveRemote(remoteUrl, env.ROUTINES_TOKEN ?? "");
   const object = await env.ROUTINES_BUCKET.get(env.ROUTINES_OBJECT_KEY);
   if (!object) return json({ error: "routines.json is not in the bucket yet" }, 404);
   if (object.size > MAX_OBJECT) return json({ error: "routines object is too large" }, 413);
@@ -152,7 +184,7 @@ export async function handleRequest(request: Request, env: AppEnv): Promise<Resp
       JSON.stringify({
         message: "worker request failed",
         path: pathname,
-        error: error instanceof Error ? error.message : "unknown",
+        error: publicMessage(error),
       }),
     );
     return json({ error: "request failed" }, 500);

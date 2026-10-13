@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, chmodSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, chmodSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -84,6 +84,7 @@ done
       ...process.env,
       PATH: `${dir}:${process.env.PATH ?? ""}`,
       AGENTS_ROOT: fixtures,
+      SYNC_TARGET: "r2",
       R2_BUCKET: "bot-routines-data",
       R2_OBJECT_KEY: "routines.json",
       R2_CLI: "cf",
@@ -106,10 +107,52 @@ done
 
 test("upload script fails when the bucket name is missing", () => {
   const ran = spawnSync("bash", [path.join(process.cwd(), "scripts/export-and-upload.sh")], {
-    env: { ...process.env, AGENTS_ROOT: fixtures },
+    env: { ...process.env, AGENTS_ROOT: fixtures, SYNC_TARGET: "r2", R2_BUCKET: "" },
     encoding: "utf8",
   });
   assert.equal(ran.status, 1);
   assert.match(ran.stderr, /R2_BUCKET/);
+  assert.equal(ran.stdout, "");
+});
+
+test("file target writes a private routines file and does not need R2", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "routines-file-"));
+  const file = path.join(dir, "store", "routines.json");
+  const ran = spawnSync("bash", [path.join(process.cwd(), "scripts/export-and-upload.sh")], {
+    env: {
+      ...process.env,
+      AGENTS_ROOT: fixtures,
+      SYNC_TARGET: "file",
+      ROUTINES_FILE: file,
+      R2_BUCKET: "",
+    },
+    encoding: "utf8",
+  });
+  try {
+    assert.equal(ran.status, 0, ran.stderr);
+    assert.equal(ran.stdout, "");
+    const uploaded = JSON.parse(readFileSync(file, "utf8"));
+    assert.equal(uploaded.routines.length, 5);
+    assert.equal(statSync(file).mode & 0o777, 0o600);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("http target does not print the token when the URL is rejected", () => {
+  const ran = spawnSync("bash", [path.join(process.cwd(), "scripts/export-and-upload.sh")], {
+    env: {
+      ...process.env,
+      AGENTS_ROOT: fixtures,
+      SYNC_TARGET: "http",
+      ROUTINES_URL: "http://feed.example/routines.json",
+      ROUTINES_TOKEN: "super-secret-token",
+      R2_BUCKET: "",
+    },
+    encoding: "utf8",
+  });
+  assert.equal(ran.status, 1);
+  assert.match(ran.stderr, /https/);
+  assert.equal(ran.stderr.includes("super-secret-token"), false);
   assert.equal(ran.stdout, "");
 });

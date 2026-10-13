@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "start": "node server/index.mjs",
     "lint": "eslint",
     "typecheck": "tsc --noEmit && tsc --noEmit -p worker/tsconfig.json",
     "cf-typegen": "wrangler types worker/env.d.ts --include-runtime false",
-    "test": "tsx --test lib/*.test.ts worker/*.test.ts && node --test scripts/*.test.mjs"
+    "test": "tsx --test lib/*.test.ts worker/*.test.ts && node --test scripts/*.test.mjs server/*.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

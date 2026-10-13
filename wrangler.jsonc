@@ -21,8 +21,12 @@
     "run_worker_first": ["/api/*", "/routines.json"]
   },
   // Non-secret object key. The bucket stays private; do not enable public access.
+  // Leave the URL empty to read R2. A secret with the same name overrides the
+  // empty value when this Worker should fetch a private URL instead.
   "vars": {
-    "ROUTINES_OBJECT_KEY": "routines.json"
+    "ROUTINES_OBJECT_KEY": "routines.json",
+    "ROUTINES_URL": "",
+    "ROUTINES_TOKEN": ""
   },
   "secrets": {
     "required": ["SITE_PASSWORD"]

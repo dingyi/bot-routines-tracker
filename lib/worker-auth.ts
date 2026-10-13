@@ -1,7 +1,7 @@
 import { apiUrl } from "@/lib/preferences";
 
 export type WorkerAuth = {
-  mode: "worker";
+  mode: "worker" | "server";
   required: boolean;
   configured: boolean;
   unlocked: boolean;
@@ -11,11 +11,11 @@ export type GateState = "checking" | "open" | "client" | "worker" | "unconfigure
 
 export function parseWorkerAuth(value: unknown): WorkerAuth | null {
   if (typeof value !== "object" || value === null) return null;
-  if (!("mode" in value) || value.mode !== "worker") return null;
+  if (!("mode" in value) || (value.mode !== "worker" && value.mode !== "server")) return null;
   if (!("required" in value) || typeof value.required !== "boolean") return null;
   if (!("unlocked" in value) || typeof value.unlocked !== "boolean") return null;
   const configured = "configured" in value && typeof value.configured === "boolean" ? value.configured : true;
-  return { mode: "worker", required: value.required, configured, unlocked: value.unlocked };
+  return { mode: value.mode, required: value.required, configured, unlocked: value.unlocked };
 }
 
 let gateState: GateState = "checking";

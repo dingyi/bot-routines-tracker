@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { handleRequest } from "./index";
@@ -95,4 +96,83 @@ test("other paths are static assets", async () => {
   const response = await handleRequest(new Request("https://routines.example/"), env());
   assert.equal(response.status, 200);
   assert.equal(await response.text(), "asset");
+});
+
+test("session token matches the node server HMAC", async () => {
+  const expected = createHmac("sha256", PASSWORD).update("bot-routines-session-v1").digest("hex");
+  assert.equal(await sessionToken(PASSWORD), expected);
+});
+
+test("a private URL is read on the server and does not leak the token", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalError = console.error;
+  const logs: string[] = [];
+  console.error = (line?: unknown) => {
+    logs.push(String(line));
+  };
+  let reads = 0;
+  let fetchCalls = 0;
+  const remoteEnv = {
+    ...env(),
+    ROUTINES_URL: "https://feed.example/routines.json",
+    ROUTINES_TOKEN: "secret-token",
+    ROUTINES_BUCKET: {
+      async get() {
+        reads += 1;
+        return null;
+      },
+    },
+  };
+  try {
+    globalThis.fetch = async (_input, init) => {
+      fetchCalls += 1;
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("authorization"), "Bearer secret-token");
+      assert.equal(init?.redirect, "manual");
+      return new Response(BODY, { status: 200 });
+    };
+    const open = await handleRequest(
+      new Request("https://routines.example/routines.json", { headers: { cookie: await cookieFor(PASSWORD) } }),
+      remoteEnv,
+    );
+    assert.equal(open.status, 200);
+    assert.equal(await open.text(), BODY);
+    assert.equal(reads, 0);
+    assert.equal(fetchCalls, 1);
+
+    globalThis.fetch = async () => new Response(null, { status: 302, headers: { location: "https://evil.example/steal" } });
+    const redirected = await handleRequest(
+      new Request("https://routines.example/routines.json", { headers: { cookie: await cookieFor(PASSWORD) } }),
+      remoteEnv,
+    );
+    assert.equal(redirected.status, 502);
+    assert.equal((await redirected.text()).includes("evil.example"), false);
+
+    globalThis.fetch = async () => {
+      throw new Error("connect failed https://feed.example/routines.json secret-token");
+    };
+    const broken = await handleRequest(
+      new Request("https://routines.example/routines.json", { headers: { cookie: await cookieFor(PASSWORD) } }),
+      remoteEnv,
+    );
+    assert.equal(broken.status, 502);
+    const shown = `${await broken.text()}\n${logs.join("\n")}`;
+    assert.equal(shown.includes("secret-token"), false);
+    assert.equal(shown.includes("feed.example"), false);
+
+    fetchCalls = 0;
+    globalThis.fetch = async () => {
+      fetchCalls += 1;
+      return new Response(BODY);
+    };
+    const unconfigured = await handleRequest(
+      new Request("https://routines.example/routines.json", { headers: { cookie: await cookieFor(PASSWORD) } }),
+      { ...remoteEnv, ROUTINES_TOKEN: "  " },
+    );
+    assert.equal(unconfigured.status, 503);
+    assert.equal(fetchCalls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.error = originalError;
+  }
 });

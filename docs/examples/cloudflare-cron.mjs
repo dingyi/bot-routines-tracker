@@ -2,8 +2,9 @@
  * Example only. Do not add this to the dashboard Worker.
  *
  * Grok Bot sync runs on the bot, every 15 minutes, via scripts/export-and-upload.sh.
- * Use a Worker cron only when the JSON already lives at an HTTPS URL and there is
- * no Grok Bot computer to wake. Keep the bucket private.
+ * The dashboard Worker can read ROUTINES_URL itself. Use this separate cron only
+ * when you want a copy of an HTTPS feed in R2 and there is no Grok Bot to wake.
+ * Keep the bucket private. Cloudflare is one host, not a requirement.
  *
  * wrangler.jsonc (a separate worker, or an extra handler you add yourself):
  * {
